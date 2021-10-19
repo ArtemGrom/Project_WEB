@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Topic
+from .models import Topic, Entry
 from .forms import TopicForm, EntryForm
 
 
@@ -60,3 +60,22 @@ def new_entry(request, topic_id):
     # Отображение пустой или недопустимой формы
     context = {'topic': topic, 'form': form}
     return render(request, 'learning_logs/new_entry.html', context)
+
+
+def edit_entry(request, entry_id):
+    """Редактирование существующей записи"""
+    entry = Entry.objects.get(id=entry_id)
+    topic = entry.topic
+
+    if request.method != 'POST':
+        # Начальный запрос, нужно заполнить форму сначала.
+        form = EntryForm(instance=entry)
+    else:
+        # POST данные предоставлены, обрабатываем
+        form = EntryForm(instance=entry, data=request.POST)
+        if form.is_valid():
+            form.save()
+        return redirect('learning_logs:topic', topic_id=topic.id)
+
+    context = {'entry': entry, 'topic': topic, 'form': form}
+    return render(request, 'learning_logs/edit_entry.html', context)
